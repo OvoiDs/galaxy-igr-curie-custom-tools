@@ -1,0 +1,38 @@
+<macros>
+    <xml name="BaseRecalibratorParameters" tokens="tag">
+        
+        <expand macro="macro_bam_input" tag="@TAG@" />
+
+        <param name="knownSites" type="data" format="vcf,bcf,bed,pileup,tabular,table" label="Database of known Sites (ROD files; e.g. VCF format)" multiple="true" label="A database of known polymorphic sites to skip over in the recalibration algorithm" help="-knownSites,&#8209;&#8209;knownSites &amp;lt;knownSites&amp;gt;" />
+
+    </xml>
+
+    <xml name="BaseRecalibratorOutput">
+        <data format="tabular" name="br_table" label="${tool.name} - ${analysis_type.analysis_type_selector} on ${on_string} (Table)">
+            <yield />
+        </data>
+    </xml>
+
+    <template name="BaseRecalibratorPreprocessing">
+<![CDATA[
+        @token_bam_input_pre@
+        #for $i, $variant in enumerate($analysis_type.knownSites):
+            ln -s -f ${variant} variant_${i}.vcf &&
+        #end for
+]]>
+    </template>
+
+    <template name="BaseRecalibratorOptions">
+<![CDATA[
+        --out                   ${br_table}
+
+        @token_bam_input@
+
+        #for $i, $variant in enumerate($analysis_type.knownSites):
+            --knownSites variant_${i}.vcf
+        #end for
+]]>
+    </template>
+</macros>
+
+

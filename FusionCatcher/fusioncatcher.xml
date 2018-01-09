@@ -1,0 +1,20 @@
+<tool id="fusioncatcher" name="FusionCatcher" version="1.0">
+  <description>call fusion using FusionCatcher</description>
+  <command> cp $FastQR1 ./R1.fastq; cp $FastQR2 ./R2.fastq; /data/softwares/FusionCatcher/bin/fusioncatcher -i R1.fastq,R2.fastq -o . -p 8 -d /data/softwares/FusionCatcher/data/current; cp ./final-list_candidate-fusion-genes.hg19.txt $FusionList; cp ./summary_candidate_fusions.txt $Summary; </command>
+  <inputs>
+    <param format="fastq" name="FastQR1" type="data" label="FastQ file R1" />
+    <param format="fastq" name="FastQR2" type="data" label="FastQ file R2" />
+
+  </inputs>
+
+  <outputs>
+    <data format="txt" name="FusionList" label="FusionCatcher - Fusion List on ${FastQR1.name} and ${FastQR2.name}" />
+    <data format="txt" name="Summary" label="FusionCatcher - Fusion Summary on ${FastQR1.name} and ${FastQR2.name}" />
+  </outputs>
+  <stdio>
+     <regex match="fatalerror" level="fatal" />
+  </stdio>
+
+  <help>
+  </help>
+</tool>

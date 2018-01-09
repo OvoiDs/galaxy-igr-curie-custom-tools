@@ -1,0 +1,163 @@
+<macros>
+
+    <xml name="requirements">
+        <requirements>
+            <requirement type="package" version="3.1.2.1">package_r_for_gatk_3_4_0</requirement>
+        </requirements>
+    </xml>
+
+    <xml name="version_command">
+        <version_command><![CDATA[ @GATK_EXEC@ --help|grep '^The Genome' ]]></version_command>
+    </xml>
+
+    <token name="@VERSION@">3.4-0</token>
+    <token name="@OUTPUT_NAME_PREFIX@">${tool.name} - ${analysis_type.analysis_type_selector}</token>
+    <token name="@GATK_EXEC@">
+<![CDATA[
+        #if $cond_threads.cond_threads_enabled:
+            #if int($cond_threads.nct) > 1:
+                THREAD_STRING="-nct $cond_threads.nct" &&
+            #end if
+            #if int($cond_threads.nt) > 1:
+                THREAD_STRING=$THREAD_STRING" -nt $cond_threads.nt" &&
+            #end if
+            #if int($cond_threads.mem) > 0:
+                GATK_MEM=$cond_threads.mem &&
+            #end if
+        #end if
+        java -Xmx\${GATK_MEM:-\${SLURM_MEM_PER_NODE:-4096}}M -jar "/data/softwares/GenomeAnalysisTK-3.4-0/GenomeAnalysisTK.jar" \${THREAD_STRING:-}
+]]>
+    </token>
+
+    <xml name="macro_vcf_input" tokens="tag">
+        <param name="input" type="data" format="vcf" multiple="true" label="Variant files (VCF format)" help="-V, &#8209;&#8209;variant">
+            <validator type="unspecified_build" />
+            <validator type="dataset_metadata_in_data_table" table_name="picard_indexes" metadata_name="dbkey" metadata_column="dbkey" message="Sequences are not currently available for the specified build." /> 
+        </param>
+    </xml>
+    <token name="@token_vcf_input_pre@" tokens="tag">
+<![CDATA[
+        ############################
+        ## create links to gVCF input files with correct extensions
+        ############################
+        #for $i, $variant in enumerate($analysis_type.input):
+            ln -s -f ${variant} variant_${i}.vcf &&
+        #end for
+]]>
+    </token>
+    <token name="@token_vcf_input@">
+<![CDATA[
+        #for $i, $variant in enumerate($analysis_type.input):
+            --variant variant_${i}.vcf
+        #end for
+        @token_reference_input@
+]]>
+    </token>
+
+
+    <xml name="macro_gvcf_input" tokens="tag">
+        <param name="input" type="data" format="vcf" multiple="true" label="Variant files (gVCF format)" help="-V, &#8209;&#8209;variant">
+            <validator type="unspecified_build" />
+            <validator type="dataset_metadata_in_data_table" table_name="picard_indexes" metadata_name="dbkey" metadata_column="dbkey" message="Sequences are not currently available for the specified build." /> 
+        </param>
+    </xml>
+    <token name="@token_gvcf_input_pre@" tokens="tag">
+<![CDATA[
+        ############################
+        ## create links to gVCF input files with correct extensions
+        ############################
+        #for $i, $variant in enumerate($analysis_type.input):
+            ln -s -f ${variant} variant_${i}.g.vcf &&
+        #end for
+]]>
+    </token>
+    <token name="@token_gvcf_input@">
+<![CDATA[
+        #for $i, $variant in enumerate($analysis_type.input):
+            --variant variant_${i}.g.vcf
+        #end for
+        @token_reference_input@
+]]>
+    </token>
+
+    <xml name="macro_bam_input">
+        <conditional name="cond_bam_input">
+            <param name="all_in_one" type="boolean" value="false" label="Input all BAM files in a single command" />
+            <when value="true">
+                <param name="input" type="data" format="bam" multiple="true" label="Input file containing sequence data (BAM)" help="-I, ‑‑input_file">
+                    <validator type="unspecified_build"/>
+                    <validator type="dataset_metadata_in_data_table" table_name="picard_indexes" metadata_name="dbkey" metadata_column="dbkey" message="Sequences are not currently available for the specified build."/>
+                </param>
+            </when>
+            <when value="false">
+                <param name="input" type="data" format="bam" label="Input file containing sequence data (BAM)" help="-I, ‑‑input_file">
+                    <validator type="unspecified_build"/>
+                    <validator type="dataset_metadata_in_data_table" table_name="picard_indexes" metadata_name="dbkey" metadata_column="dbkey" message="Sequences are not currently available for the specified build."/>
+                </param>
+            </when>
+        </conditional>
+    </xml>
+    <token name="@token_bam_input_pre@">
+<![CDATA[
+        ############################
+        ## create links to bam input files with correct extensions
+        ############################
+        #if $analysis_type.cond_bam_input.all_in_one
+            #for $i, $bam in enumerate($analysis_type.cond_bam_input.input):
+                ln -s -f ${bam} input_${i}.bam &&
+                ln -s -f ${bam.metadata.bam_index} input_${i}.bam.bai &&
+            #end for
+        #else
+            ln -s -f ${analysis_type.cond_bam_input.input} input.bam &&
+            ln -s -f ${analysis_type.cond_bam_input.input.metadata.bam_index} input.bam.bai &&
+        #end if
+]]>
+    </token>
+    <token name="@token_bam_input@">
+<![CDATA[
+        #if $analysis_type.cond_bam_input.all_in_one
+            #for $i, $bam in enumerate($analysis_type.cond_bam_input.input):
+                --input_file input_${i}.bam
+            #end for
+        #else
+            --input_file            input.bam
+        #end if
+        @token_reference_input@
+]]>
+    </token>
+
+    <token name="@token_reference_input@">
+<![CDATA[
+]]>
+    </token>
+    <xml name="macro_input" tokens="tag">
+        <yield />
+    </xml>
+
+    <xml name="macro_optional_parameters">
+        <conditional name="optional_parameters">
+            <param name="optional_parameters_enabled" type="boolean" label="Configure Optional Parameters" />
+            <when value="true">
+                <yield />
+            </when>
+            <when value="false" />
+        </conditional>
+    </xml>
+
+    <xml name="macro_advanced_parameters">
+        <conditional name="advanced_parameters">
+            <param name="advanced_parameters_enabled" type="boolean" label="Configure Advanced Parameters" />
+            <when value="true">
+                <yield />
+            </when>
+            <when value="false" />
+        </conditional>
+    </xml>
+
+    <xml name="macro_tests">
+        <tests>
+            
+        </tests>
+    </xml>
+
+</macros>

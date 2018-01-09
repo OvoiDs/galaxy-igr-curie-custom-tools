@@ -1,0 +1,52 @@
+<tool id="sleuth" name="Sleuth" version="1.0">
+  <requirements>
+     <requirement type="package" version="3.4.1">r-base</requirement>
+  </requirements>
+  <description>Sleuth</description>
+  <command> Rscript /local_tools/Sleuth/sleuth2.R 
+            "$design" 
+            /local_tools/Sleuth/sleuth.RMD
+            "$archive"
+            -t "$t2genetable" 
+            -o tada
+            #if str( $ge ) == "True":
+            --gene_analysis
+            #end if
+            ;
+            cp ./tada.tsv $output_table; 
+            cp ./tada.rds $output_rds;
+            
+            #if str( $ge ) == "True":
+               cp ./tada.genes.tsv $genes; 
+            #end if
+            
+            cp ./tada.expression.tsv $expr;
+            cp ./tada.report.html $html;
+ </command>
+ <inputs>
+    <param format="txt" name="design" type="data" label="Design" />
+    <param format="zip" name="archive" type="data" label="Data archive converted in Sleuth Format" />
+    <param format="tabular" name="t2genetable" type="data" label="Transcript to Gene Table" />
+    <param type="select" name="ge" label="Gene analysis" multiple="false">
+        <option value="True">Yes</option>
+        <option value="False">No</option>
+    </param>
+       
+  </inputs>
+
+  <outputs>
+    <data format="tabular" name="output_table" label="output table" />
+    <data format="binary" name="output_rds" label="output RDS" />
+    <data format="tabular" name="genes" label="output gene">
+      <filter>ge == 'True'</filter>
+    </data>
+    <data format="tabular" name="expr" label="expression" />
+    <data format="html" name="html" label="HTML Report" />
+  </outputs>
+  <stdio>
+     <regex match="fatalerror" level="fatal" />
+  </stdio>
+  <help>
+  </help>
+</tool>
+

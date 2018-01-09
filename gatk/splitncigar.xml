@@ -1,0 +1,38 @@
+<macros>
+    <xml name="SplitNCigarParameters" tokens="tag">
+        
+        <expand macro="macro_bam_input" tag="@TAG@" />
+
+        <expand macro="macro_optional_parameters">
+            <param name="maxBasesInOverhang" type="integer" value="40" label="max number of bases allowed in the overhang" help="-maxBasesInOverhang,&#8209;&#8209;maxBasesInOverhang &amp;lt;maxBasesInOverhang&amp;gt;" />
+            <param name="maxMismatchesInOverhang" type="integer" value="1" label="max number of mismatches allowed in the overhang" help="-maxMismatchesInOverhang,&#8209;&#8209;maxMismatchesInOverhang &amp;lt;maxMismatchesInOverhang&amp;gt;" />
+            <param name="maxReadsInMemory" type="integer" value="150000" label="max reads allowed to be kept in memory at a time by the BAM writer" help="-maxReadsInmemory,&#8209;&#8209;maxReadsInMemory &amp;lt;maxReadsInMemory&amp;gt;" />
+
+            <param name="doNotFixOverhangs" type="boolean" value="false" label="do not have the walker hard-clip overhanging sections of the reads" help="-doNotFixOverhangs,&#8209;&#8209;doNotFixOverhangs &amp;lt;doNotFixOverhangs&amp;gt;" />
+        </expand>
+        
+    </xml>
+
+    <xml name="SplitNCigarOutput">
+        <data format="gatk_splitncigar" name="splitncigar_output" label="${tool.name} - ${analysis_type.analysis_type_selector} on ${on_string} (GATK SplitNCigar)">
+            <yield />
+        </data>
+    </xml>
+
+    <template name="SplitNCigarOptions">
+<![CDATA[
+        --out                   ${splitncigar_output_bam}
+
+        @token_bam_input@
+
+        #if $analysis_type.optional_parameters.optional_parameters_enabled
+            --maxBasesInOverhang       ${analysis_type.optional_parameters.maxIntervalSize}
+            --maxMismatchesInOverhang       ${analysis_type.optional_parameters.minReadsAtLocus}
+            --maxReadsInMemory            ${analysis_type.optional_parameters.windowSize}
+            --doNotFixOverhangs      ${analysis_type.optional_parameters.mismatchFraction}
+        #end if
+]]>
+    </template>
+</macros>
+
+

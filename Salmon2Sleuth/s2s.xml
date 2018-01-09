@@ -1,0 +1,71 @@
+<tool id="salmon2sleuth" name="Salmon2Sleuth" version="1.0">
+  <description>aggregates quants file and creates the design file that Sleuth requires</description>
+
+  <requirements>
+     <requirement type="package" version="3.4.1">r-base</requirement>
+  </requirements>
+
+
+  <command>
+    Rscript /local_tools/Salmon2Sleuth/s2s.R
+    -c
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input.condname    
+      #end for
+    #end for
+    -n
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input_count.countName
+      #end for
+    #end for
+    -s
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input_count.quant
+      #end for
+    #end for
+    -o output_zip
+    ;
+    cp ./sleuth_design.tsv $outfile;
+    cp ./output_zip.zip $ozip;
+
+  </command>
+  <inputs>
+    <repeat name="cond" title="Condition" min="2">
+      <param name="condname" type="text" format="txt" value="cond1" label="Condition Name">
+        <sanitizer>
+          <valid initial="string.letters,string.digits">
+            <add value="_" />
+          </valid>
+          <mapping initial="none">
+            <add source=" " target="_" />
+          </mapping>
+        </sanitizer>
+      </param>
+      <repeat name="counts" title="Salmon Quants" min="2">
+        <param name="quant" type="data" format="zip" label="Salmon Zip Archive" />
+        <param name="countName" type="text" format="txt" value="name1" label="Sample Label" help="You need to specify a unique label for your sample">
+          <sanitizer>
+            <valid initial="string.letters,string.digits">
+              <add value="_" />
+            </valid>
+            <mapping initial="none">
+              <add source=" " target="_"/>
+            </mapping>
+          </sanitizer>
+        </param>
+      </repeat>
+    </repeat>
+  </inputs>
+  <outputs>
+    <data format="txt" name="outfile" label="Design file for Sleuth on ${on_string}" />
+    <data format="zip" name="ozip" label="Output Archive for Sleuth on ${on_string}" />
+  </outputs>
+  <stdio>
+     <regex match="fatalerror" level="fatal" />
+  </stdio>
+  <help>
+  </help>
+</tool>

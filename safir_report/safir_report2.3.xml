@@ -1,0 +1,47 @@
+<tool id="create_safir32" name="Create annotated report 2.3 BETA" version="2.3">
+  <description>with IonTorrent Variant Caller Plugin 4.0 AND 4.2.1 output with Database logging</description>
+  <command interpreter="python">Safir_Report-2.3.py -i $tabinput -n "$tabinput.name" -o $output -t $output2 --annotator "$__user_email__" --panel "$panel" </command>
+  <inputs>
+    <param format="tabular,xls,csv" name="tabinput" type="data" label="xls file" />
+    <param type="select" name="panel" label="Panel" multiple="false" >
+        <option value="CHP2">CHP2</option>
+	<option value="MOSC4">Mosc4</option>
+        <option value="MOSC3">Mosc3</option>
+        <option value="CHPCustom">CHPCustom</option>
+        <option value="ColonLungV2">ColonLungV2</option>
+        <option value="SAFIR02">SAFIR02</option>
+        <option value="BRCA1_2">BRCA1_2</option>
+        <option value="LNH">LNH</option>
+        <option value="CLL-3">CLL-3</option>
+    </param>
+  </inputs>
+  <outputs>
+    <data format="xls" name="output" label="${tool.name} on ${tabinput.name}: xls file." />
+    <data format="txt" name="output2" label="${tool.name} on ${tabinput.name}: tsv file." />
+  </outputs>
+  <help>
+
+This tool is intended to generate automatically a report for the SAFIR02 study. It uses the output from **IonTorrent Variant Caller 4.2.1** or from older version **4.0**, in tabular (extension xls) format to generate a standard report readable with any spreadsheet program, which is preannotated. It can take as input both compressed xls or flat xls, as galaxy features auto-decompression.
+It features automatic clinical annotation via a custom database that can be fed using the tool **Update Database** 
+
+.. class:: infomark
+
+In order to interpret SIFT and PolyPhen-2 results, please keep the following in mind:
+
+**SIFT**::
+
+- T = Tolerated
+- D = Deleterious
+
+**PolyPhen-2**::
+
+- B = Benign
+- P = Possibly Damaging
+- D = Probably Damaging
+
+.. class:: warningmark
+
+** Columns Var.freq, ESP Freq and 1000G Freq have to be interpreted as percentages.**
+  </help>
+</tool>
+

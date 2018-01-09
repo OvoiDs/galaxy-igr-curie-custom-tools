@@ -1,0 +1,33 @@
+<tool id="chimeraviz_PF" name="ChimeraViz - Plot Fusion" version="1.0">
+  <requirements>
+     <requirement type="package" version="3.4.1">r-base</requirement>
+  </requirements>
+
+  <description>get a picture for a specific fusion</description>
+  <command> cp "$ibam" ./bamfile.bam;
+            Rscript /local_tools/chimeraviz/fusion_report-plot.R 
+            -i "$fusions" 
+            -o "tada" 
+            -b ./bamfile.bam 
+            -d "$fid";
+            cp ./plotFusion.png $out1;
+            cp ./transcriptPlot.png $out2;
+            cp ./FusionTranscriptGraph.png $out4;
+</command>
+  <inputs>
+    <param format="txt" name="fusions" type="data" label="final fusion list from FusionCatcher" />
+    <param name="ibam" type="data" format="bam" label="BAM File" />
+    <param name="fid" type="integer" value="1" label="Fusion ID from Fusion Report" />
+  </inputs>
+  <outputs>
+    <data format="png" name="out1" label="Fusion Plot on ${fusions.name}" />
+    <data format="png" name="out2" label="Transcript Plot on ${fusions.name}" />
+    <data format="png" name="out4" label="Fusion Transcript Graph Plot on ${fusions.name}" />
+  </outputs>
+  <stdio>
+     <regex match="error" level="fatal" />
+  </stdio>
+  <help>
+  </help>
+</tool>
+

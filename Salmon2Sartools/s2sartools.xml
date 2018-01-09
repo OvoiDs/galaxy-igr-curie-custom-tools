@@ -1,0 +1,72 @@
+<tool id="salmon2sartools" name="Salmon2Sartools" version="1.0">
+  <description>aggregates quants file and creates the design file that Sartools requires</description>
+
+  <requirements>
+     <requirement type="package" version="3.4.1">r-base</requirement>
+  </requirements>
+
+
+  <command>
+    Rscript /local_tools/Salmon2Sartools/s2sartools.R
+    -c
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input.condname    
+      #end for
+    #end for
+    -n
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input_count.countName
+      #end for
+    #end for
+    -s
+    #for $i, $input in enumerate ($cond):
+      #for $j, $input_count in enumerate ($input.counts):
+        $input_count.quant
+      #end for
+    #end for
+    -t $t2g
+    ;
+    cp ./SARTools_design.txt $outfile;
+    cp ./Genes_Counts.zip $ozip;
+
+  </command>
+  <inputs>
+    <param format="tabular" type="data" name="t2g" label="Transcripts 2 genes" />
+    <repeat name="cond" title="Condition" min="2">
+      <param name="condname" type="text" format="txt" value="cond1" label="Condition Name">
+        <sanitizer>
+          <valid initial="string.letters,string.digits">
+            <add value="_" />
+          </valid>
+          <mapping initial="none">
+            <add source=" " target="_" />
+          </mapping>
+        </sanitizer>
+      </param>
+      <repeat name="counts" title="Salmon Quants" min="2">
+        <param name="quant" type="data" format="txt" label="Salmon Quants file" />
+        <param name="countName" type="text" format="txt" value="name1" label="Sample Label" help="You need to specify a unique label for your sample">
+          <sanitizer>
+            <valid initial="string.letters,string.digits">
+              <add value="_" />
+            </valid>
+            <mapping initial="none">
+              <add source=" " target="_"/>
+            </mapping>
+          </sanitizer>
+        </param>
+      </repeat>
+    </repeat>
+  </inputs>
+  <outputs>
+    <data format="txt" name="outfile" label="Design file for Sartools on ${on_string}" />
+    <data format="zip" name="ozip" label="Output Archive for Sartools on ${on_string}" />
+  </outputs>
+  <stdio>
+     <regex match="fatalerror" level="fatal" />
+  </stdio>
+  <help>
+  </help>
+</tool>

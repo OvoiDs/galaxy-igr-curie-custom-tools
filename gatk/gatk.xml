@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tool id="gatk" name="GATK" version="@VERSION@.d9">
+  <description>tool collection Version @VERSION@</description>
+  <macros>
+    <import>gatk_macros.xml</import>
+    <import>realigner_target_creator.xml</import>
+    <import>indel_realigner.xml</import>
+    <import>base_recalibrator.xml</import>
+    <import>analyze_covariates.xml</import>
+    <import>print_reads.xml</import>
+    <import>haplotype_caller.xml</import>
+    <import>genotype_gvcfs.xml</import>
+    <import>combine_gvcfs.xml</import>
+    <import>combine_variants.xml</import>
+    <import>splitncigar.xml</import>
+  </macros>
+  <expand macro="requirements"/>
+  <stdio>
+    <regex match="^INFO" level="log"/>
+    <regex match="^WARN" level="warning"/>
+    <regex match="Using .* implementation of PairHMM" level="warning"/>
+    <regex match="There is insufficient memory for the Java Runtime Environment to continue" level="fatal"/>
+    <regex match="^##### ERROR" level="fatal"/>
+    <exit_code range="1:" level="fatal"/>
+  </stdio>
+  <command><![CDATA[
+        ############################
+        ## import analysis specific preprocessings by using cheetahs internal searchList
+        ## if not defined, ignore
+        ############################
+        #if $analysis_type.analysis_type_selector + "Preprocessing" in vars()['SL'][2]
+            #set $analysisPreprocessing = vars()['SL'][2][$analysis_type.analysis_type_selector + "Preprocessing"]
+            #include source=$analysisPreprocessing
+        #end if
+        
+        ############################
+        ## GATK tool unspecific options
+        ############################
+        @GATK_EXEC@
+        
+        --analysis_type ${analysis_type.analysis_type_selector}
+        --reference_sequence    ${ref_file.fields.path}
+
+        --log_to_file           ${output_log}
+
+        #if $cond_intervals.cond_intervals_enabled
+            #for $interval in $cond_intervals.intervals:
+                --intervals ${interval.L}
+            #end for
+        #end if
+
+        #if $cond_BQSR.cond_BQSR_enabled
+          --BQSR $cond_BQSR.BQSR
+        #end if
+
+        ############################
+        ## import analysis specific options by using cheetahs internal searchList
+        ## if not defined throw raw python error until better idea
+        ############################
+        #if $analysis_type.analysis_type_selector + "Options" in vars()['SL'][2]
+            #set $analysisOptions = vars()['SL'][2][$analysis_type.analysis_type_selector + "Options"]
+            #include source=$analysisOptions
+        #else
+            #set $analysisOptions = vars()['SL'][2][$analysis_type.analysis_type_selector + "Options"]
+        #end if
+        
+        ############################
+        ## only put ERROR or FATAL log messages into stderr
+        ## but keep full log for printing into log file
+        ############################
+        2>&1 | awk '\$1 != "INFO" && \$1 != "WARN"' >&2
+]]></command>
+  <inputs>
+    <param name="ref_file" type="select" label="Using reference genome" help="-R,‑‑reference_sequence &amp;lt;reference_sequence&amp;gt;">
+      <options from_data_table="picard_indexes"/>
+      <validator type="no_options" message="A built-in reference genome is not available for the build associated with the selected input file"/>
+    </param>
+    <conditional name="cond_intervals">
+      <param name="cond_intervals_enabled" type="boolean" label="Select interval subset to operate on?"/>
+      <when value="true">
+        <repeat name="intervals" title="genomic interval over which to operate" help="-L,‑‑intervals &amp;lt;intervals&amp;gt;">
+          <param name="L" type="text" value=""/>
+        </repeat>
+      </when>
+      <when value="false"/>
+    </conditional>
+    <conditional name="cond_BQSR">
+      <param name="cond_BQSR_enabled" type="boolean" label="Select covariates for on-the-fly recalibration?"/>
+      <when value="true">
+        <param name="BQSR" type="data" format="tabular" label="Input covariates table file for on-the-fly base quality score recalibration" help="-BQSR,‑‑BQSR &amp;lt;BQSR&amp;gt; intended primarily for use with BaseRecalibrator and PrintReads"/>
+      </when>
+      <when value="false"/>
+    </conditional>
+    <conditional name="cond_threads">
+      <param name="cond_threads_enabled" type="boolean" label="Set computational options (cpu, mem)?"/>
+      <when value="true">
+        <param name="nt" type="integer" value="1" label="Number of data threads to allocate to this analysis" help="make sure, the option is available for the chosen tool"/>
+        <param name="nct" type="integer" value="1" label="Number of CPU threads to allocate per data thread" help="make sure, the option is available for the chosen tool"/>
+        <param name="mem" type="integer" value="0" label="Overwrite Memory in MB (0 = don't overwrite)" help="Overwrites all other defaults and might lead to crash the run. States mem per data thread"/>
+      </when>
+      <when value="false"/>
+    </conditional>
+    <conditional name="analysis_type">
+      <param name="analysis_type_selector" type="select" label="Analysis Type">
+        <option value="RealignerTargetCreator">RealignerTargetCreator</option>
+        <option value="IndelRealigner">IndelRealigner</option>
+        <option value="BaseRecalibrator">BaseRecalibrator</option>
+        <option value="AnalyzeCovariates">AnalyzeCovariates</option>
+        <option value="PrintReads">PrintReads</option>
+        <option value="HaplotypeCaller">HaplotypeCaller</option>
+        <option value="GenotypeGVCFs">GenotypeGVCFs</option>
+        <option value="CombineGVCFs">CombineGVCFs</option>
+        <option value="CombineVariants">CombineVariants</option>
+        <option value="SplitNCigar">SplitNCigar</option>
+      </param>
+      <when value="RealignerTargetCreator">
+        <expand macro="RealignerTargetCreatorParameters" tag="rtc"/>
+      </when>
+      <when value="IndelRealigner">
+        <expand macro="IndelRealignerParameters" tag="ir"/>
+      </when>
+      <when value="BaseRecalibrator">
+        <expand macro="BaseRecalibratorParameters" tag="br"/>
+      </when>
+      <when value="AnalyzeCovariates">
+        <expand macro="AnalyzeCovariatesParameters" tag="ac"/>
+      </when>
+      <when value="PrintReads">
+        <expand macro="PrintReadsParameters" tag="pr"/>
+      </when>
+      <when value="HaplotypeCaller">
+        <expand macro="HaplotypeCallerParameters" tag="hc"/>
+      </when>
+      <when value="GenotypeGVCFs">
+        <expand macro="GenotypeGVCFsParameters" tag="gg"/>
+      </when>
+      <when value="CombineGVCFs">
+        <expand macro="CombineGVCFsParameters" tag="cg"/>
+      </when>
+      <when value="CombineVariants">
+        <expand macro="CombineVariantsParameters" tag="cv"/>
+      </when>
+      <when value="SplitNCigar">
+        <expand macro="SplitNCigarParameters" tag="snc"/>
+      </when>
+    </conditional>
+  </inputs>
+  <outputs>
+    <expand macro="RealignerTargetCreatorOutput" tag="rtc">
+      <filter>analysis_type['analysis_type_selector'] == 'RealignerTargetCreator'</filter>
+    </expand>
+    <expand macro="IndelRealignerOutput" tag="ir">
+      <filter>analysis_type['analysis_type_selector'] == 'IndelRealigner'</filter>
+    </expand>
+    <expand macro="BaseRecalibratorOutput" tag="br">
+      <filter>analysis_type['analysis_type_selector'] == 'BaseRecalibrator'</filter>
+    </expand>
+    <expand macro="AnalyzeCovariatesOutput" tag="ac">
+      <filter>analysis_type['analysis_type_selector'] == 'AnalyzeCovariates'</filter>
+    </expand>
+    <expand macro="PrintReadsOutput" tag="pr">
+      <filter>analysis_type['analysis_type_selector'] == 'PrintReads'</filter>
+    </expand>
+    <expand macro="HaplotypeCallerOutput" tag="hc">
+      <filter>analysis_type['analysis_type_selector'] == 'HaplotypeCaller'</filter>
+    </expand>
+    <expand macro="GenotypeGVCFsOutput" tag="gg">
+      <filter>analysis_type['analysis_type_selector'] == 'GenotypeGVCFs'</filter>
+    </expand>
+    <expand macro="CombineGVCFsOutput" tag="cg">
+      <filter>analysis_type['analysis_type_selector'] == 'CombineGVCFs'</filter>
+    </expand>
+    <expand macro="CombineVariantsOutput" tag="cv">
+      <filter>analysis_type['analysis_type_selector'] == 'CombineVariants'</filter>
+    </expand>
+    <expand macro="SplitNCigarOutput" tag="snc">
+      <filter>analysis_type['analysis_type_selector'] == 'SplitNCigar'</filter>
+    </expand>
+    <data format="txt" name="output_log" label="${tool.name} - ${analysis_type.analysis_type_selector} on ${on_string} (log)"/>
+  </outputs>
+  <citations>
+    <citation type="doi">10.1101/gr.107524.110</citation>
+    <citation type="doi">10.1038/ng.806</citation>
+    <citation type="doi">10.1002/0471250953.bi1110s43</citation>
+  </citations>
+</tool>

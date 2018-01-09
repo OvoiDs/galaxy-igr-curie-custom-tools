@@ -1,0 +1,64 @@
+--- 
+title: "Sleuth Report" 
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    number_sections: true
+    theme: readable 
+params:
+  sleuth: !r list()
+  ref_cond: !r list() 
+---
+ 
+```{r global_options, include=FALSE} 
+knitr::opts_chunk$set(
+  fig.width=12,
+  fig.height=8,
+  fig.align="center",
+  echo=FALSE,
+  warning=FALSE,
+  message=FALSE,
+  dev="png" 
+); 
+```
+
+# Principal Component Analysis
+```{r} 
+sleuth::plot_pca(params$sleuth, text_labels = T, color_by = "test", units = "tpm"); 
+```
+
+# Sample Heatmap
+```{r} 
+sleuth::plot_sample_heatmap(params$sleuth); 
+```
+
+# Clustered Dendrogram
+```{r}
+quant <- sleuth::kallisto_table(params$sleuth);
+reduced_quant <- quant[c("target_id", "sample", "tpm")];
+re_ordered <- tidyr::spread(reduced_quant, sample, tpm);
+rownames(re_ordered) <- re_ordered$target_id; re_ordered$target_id <- NULL; plot(
+  hclust(dist(t(re_ordered)), method = "ward.D"),
+  xlab = "Euclidean distance - Ward criterion",
+  main = "Cluster dendrogram" 
+); 
+```
+
+# Pairwise Scatterplot
+```{r} 
+log_data <- log10(re_ordered); 
+log_data[log_data < 0] <- 0; 
+pairs(log_data, pch = ".", gap = 0, lower.panel=panel.cor); 
+```
+
+# Volcano plot
+```{r} 
+sleuth::plot_volcano(params$sleuth, params$ref_cond); 
+```
+
+# Result table
+```{r} 
+DT::datatable(sleuth_results(params$sleuth, params$ref_cond)[, c("target_id", "pval", "qval", "b", "ens_gene", "ext_gene")]); 
+```

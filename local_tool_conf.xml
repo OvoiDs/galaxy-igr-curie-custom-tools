@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<toolbox monitor="true">
+  <section id="lrt" name="LRT applications">
+    <tool file="/local_tools/safir_report/safir_report2.3.xml" />
+  </section>
+  <section id="ngs:_rna_analysis" name="NGS: RNA Analysis" version="">
+<!--  <section id="test" name="test"> -->
+    <tool file="/local_tools/FusionCatcher/fusioncatcher.xml" />
+    <tool file="/local_tools/chimeraviz/chimeraviz.xml" />
+    <tool file="/local_tools/chimeraviz/chimeraviz-pf.xml" />
+    <tool file="/local_tools/Sleuth/sleuth.xml" />
+    <tool file="/local_tools/Salmon2Sleuth/s2s.xml" />
+    <tool file="/local_tools/Salmon2Sartools/s2sartools.xml" />
+  </section>
+</toolbox>

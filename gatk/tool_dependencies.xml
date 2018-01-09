@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<tool_dependency>
+    <set_environment version="1.0">
+        <environment_variable action="set_to" name="GATK_PATH">/mnt/galaxy/tools/GATK/3.4-0</environment_variable>
+    </set_environment>
+    <!--
+    Use GATK_SITE_OPTIONS to set additional parameters that should be inserted in every GATK call.
+    The intended use case was to prohibit GATK to collect and send data.
+    For example:
+
+    -et "NO_ET" -K "/data/gatk_key_file" ##ET no phone home
+    -->
+    <set_environment version="1.0">
+        <environment_variable action="set_to" name="GATK_SITE_OPTIONS"> </environment_variable>
+    </set_environment>
+    <package name="package_r_for_gatk_3_4_0" version="3.1.2.1">
+        <repository changeset_revision="49c62e9b71ad" name="package_r_for_gatk_3_4_0" owner="avowinkel" toolshed="https://toolshed.g2.bx.psu.edu" />
+    </package>
+</tool_dependency>

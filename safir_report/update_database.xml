@@ -1,0 +1,15 @@
+<tool id="update_database_safir" name="Update clinical annotation database for Safir Report">
+  <command interpreter="python">LRT_database.py -i $tabinput -d /data/galaxy/genome_db/BDD_variants.tsv.gz -m append -o $output -k $outputPa -p /data/galaxy/genome_db/BDD_patient.tsv -a $annotator</command>
+  <inputs>
+    <param format="tabular,xls,csv" name="tabinput" type="data" label="Annotated XLS file" />
+    <param type="text" name="annotator" label="Annotator" required="True" />
+  </inputs>
+  <outputs>
+    <data format="tabular" name="output" label="Variant database dump after ${tabinput.name}." />
+    <data format="tabular" name="outputPa" label="Patient database dump after ${tabinput.name}." />
+  </outputs>
+  <help>
+   This tool allows users to update the clinical database. It will give an update version of the database as output.
+  </help>
+</tool>
+

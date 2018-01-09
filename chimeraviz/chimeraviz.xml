@@ -1,0 +1,24 @@
+<tool id="chimeraviz" name="ChimeraViz" version="1.0">
+  <requirements>
+     <requirement type="package" version="3.4.1">r-base</requirement>
+  </requirements>
+
+  <description>get chimera report</description>
+  <command> Rscript /local_tools/chimeraviz/fusion_report.R 
+            -i "$fusions" 
+            -o "$report" 
+</command>
+  <inputs>
+    <param format="txt" name="fusions" type="data" label="final fusion list from FusionCatcher" />
+  </inputs>
+
+  <outputs>
+    <data format="html" name="report" label="Fusion Report on ${fusions.name}" />
+  </outputs>
+  <stdio>
+     <regex match="error" level="fatal" />
+  </stdio>
+  <help>
+  </help>
+</tool>
+
